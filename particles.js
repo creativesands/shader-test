@@ -1,10 +1,23 @@
 var vertexShader = `
+	// varying vec2 vUv;
+
+	// void main() {
+	//     vUv = uv;
+	//     vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+	//     gl_Position = projectionMatrix * mvPosition;
+	// }
+
 	varying vec2 vUv;
+	uniform float size;
 
 	void main() {
+
 	    vUv = uv;
+
 	    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+	    gl_PointSize = size * ( 300.0 / -mvPosition.z );
 	    gl_Position = projectionMatrix * mvPosition;
+
 	}
 `;
 
@@ -16,14 +29,15 @@ var fragmentShader = `
 
 	void main( void ) {
 	    vec4 color = texture2D( texture, vUv ).rgba;
-	    gl_FragColor = vec4( color.r, 1.0, 1.0, 1.0 );
+	    gl_FragColor = vec4( 1.0, 0.5, 0.25, 1.0 );
 	}
 `;
 
 var uniforms = {
+	size: { type: "f", value: 20.0 },
 	time: { type: "f", value: 1.0 },
 	resolution: { type: "v2", value: new THREE.Vector2() },
-	texture: { type: "t", value: new THREE.TextureLoader().load( "images/original/1-2.png" ) }
+	texture: { type: "t", value: new THREE.TextureLoader().load( "images/1-1.png" ) }
 };
 
 var container, stats;
@@ -162,6 +176,7 @@ function render() {
 			object.rotation.y = time * ( i < 4 ? i + 1 : - ( i + 1 ) );
 		}
 	}
+	uniforms.time += 0.0001;
 	// for ( i = 0; i < materials.length; i ++ ) {
 	// 	color = parameters[i][0];
 	// 	h = ( 360 * ( color[0] + time ) % 360 ) / 360;
