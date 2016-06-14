@@ -37,7 +37,7 @@
 		varying vec4 vColor;
 
 		void main (void) {
-			gl_FragColor = vColor;
+			gl_FragColor = vColor * abs(sin(time));
 		}
 	</script>
 
@@ -62,21 +62,27 @@
 		var geometry = new THREE.BufferGeometry();
 		
 		var vertices = new Float32Array([
-			-1.0,  0.0,  1.0,
-			 0.0,  0.0,  0.0, 
-			 1.0,  0.0,  1.0
+			-1.0, -1.0,  1.0,
+			 0.0, -1.0,  1.0,
+			 1.0, -1.0,  1.0,
+			 0.0,  0.0,  0.0,
+			 1.0,  1.0,  1.0,
+			 0.0,  1.0,  1.0, 
+			-1.0,  1.0,  1.0, 
 			]);
 
 		var colors = new Float32Array([
-				255.0, 0.0, 255.0, 0.5,
-				0.0, 255.0, 0.0, 0.5,
-				0.0, 0.0, 255.0, 0.5
+				255.0, 0.0, 0.0, 0.75,
+				0.0, 255.0, 0.0, 0.75,
+				0.0, 0.0, 255.0, 0.75,
+				255.0, 255.0, 255.0, 0.95,
+				255.0, 0.0, 0.0, 0.75,
+				0.0, 255.0, 0.0, 0.75,
+				0.0, 0.0, 255.0, 0.75,
 			]);
 
 		var sizes = new Float32Array([
-			5,
-			1,
-			5
+			2, 2, 2, 5, 2, 2, 2
 			]);
 
 		geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
@@ -84,7 +90,7 @@
 		geometry.addAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
 
 		var material = new THREE.PointsMaterial({ 
-			// color: 0xff0000, 
+			color: 0xff0000, 
 			side: THREE.DoubleSide
 		});
 
@@ -94,12 +100,12 @@
 			uniforms: uniforms,
 			vertexShader: document.getElementById( 'vs' ).textContent,
 			fragmentShader: document.getElementById( 'fs' ).textContent,
-			// side: THREE.DoubleSide,
-			transparent: true
+			blending: THREE.AdditiveBlending,
+			transparent: true,
+			depthTest: false,
 		});
 		
 		mesh =  new THREE.Points( geometry, shaderMaterial );
-		console.log( mesh );
 
 		scene.add( mesh );
 
@@ -134,8 +140,8 @@
 	function render() {
 
 		mesh.rotation.y += 0.05;
-		uniforms.time.value += 0.005;
-		// mesh.rotation.x -= 0.05;
+		mesh.rotation.x -= 0.05;
+		uniforms.time.value += 0.05;
 		renderer.render( scene, camera );
 	}
 
