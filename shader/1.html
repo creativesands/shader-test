@@ -15,16 +15,35 @@
 	<div id="container"></div>
 	
 	<script id="vs" type="x-shader/x-vertex">
+		uniform float time;
+		
+		attribute float size;
+		attribute vec3 color;
 
+		varying vec3 vColor;
+
+		void main() {
+			vColor = color;
+
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			gl_PointSize = size * ( 200.0 / -mvPosition.z );
+			gl_Position = projectionMatrix * mvPosition;
+		}
 	</script>
 
-	<script id="vs" type="x-shader/x-fragment">
+	<script id="fs" type="x-shader/x-fragment">
+		uniform float time;
 
+		varying vec3 vColor;
+
+		void main (void) {
+			gl_FragColor = vec4( vColor, 1.0 );
+		}
 	</script>
 
 	<script>
 		
-	var container, camera, renderer, scene, mesh;
+	var container, camera, renderer, scene, mesh, uniforms;
 	var W = window.innerWidth;
 	var H = window.innerHeight;
 
@@ -40,30 +59,45 @@
 
 		scene = new THREE.Scene();
 
-		// var geometry = new THREE.BoxGeometry( 2, 2, 2 );
-		// var material = new THREE.MeshNormalMaterial();
-
 		var geometry = new THREE.BufferGeometry();
+		
 		var vertices = new Float32Array([
-			// -1.0, -1.0,  1.0,
-			//  1.0, -1.0,  1.0,
-			 1.0,  1.0,  0.0,
-
-			 // 1.0,  1.0,  1.0,
-			-1.0,  1.0,  1.0,
-			// -1.0, -1.0,  1.0
+			-1.0,  0.0,  1.0,
+			 0.0,  0.0,  0.0, 
+			 1.0,  0.0,  1.0,
 			]);
+
+		var colors = new Float32Array([
+			new THREE.Color( 0x000000 ),
+			new THREE.Color( 0x000000 ),
+			new THREE.Color( 0x000000 )
+			]);
+
+		var sizes = new Float32Array([
+			5,
+			1,
+			5
+			]);
+
 		geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-		geometry.addAttribute( 'size', new THREE.BufferAttribute( new Float32Array([ 1, 1 ]), 1 ) );
+		geometry.addAttribute( 'color', new THREE.BufferAttribute( vertices, 1 ) );
+		geometry.addAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
 
 		var material = new THREE.PointsMaterial({ 
-			color: 0xff0000, 
-			side: THREE.DoubleSide,
-			size: 2 
+			// color: 0xff0000, 
+			side: THREE.DoubleSide
+		});
+
+		uniforms = { time: { type: 'f', value: 1.0 } };
+
+		var shaderMaterial = new THREE.ShaderMaterial({
+			uniforms: uniforms,
+			vertexShader: document.getElementById( 'vs' ).textContent,
+			fragmentShader: document.getElementById( 'fs' ).textContent,
+			side: THREE.DoubleSide
 		});
 		
-		// mesh =  new THREE.Mesh( geometry, material );
-		mesh =  new THREE.Points( geometry, material );
+		mesh =  new THREE.Points( geometry, shaderMaterial );
 		console.log( mesh );
 
 		scene.add( mesh );
@@ -77,10 +111,10 @@
 		onWindowResize();
 
 		window.addEventListener( 'resize', onWindowResize, false );
-
 	}
 
 	function onWindowResize( event ) {
+
 		W = window.innerWidth;
 		H = window.innerHeight;
 		
@@ -91,12 +125,15 @@
 	}
 
 	function animate() {
+
 		requestAnimationFrame( animate );
 		render();
 	}
 
 	function render() {
+
 		mesh.rotation.y += 0.05;
+		uniforms.time.value += 0.005;
 		// mesh.rotation.x -= 0.05;
 		renderer.render( scene, camera );
 	}
