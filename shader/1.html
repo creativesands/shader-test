@@ -18,9 +18,9 @@
 		uniform float time;
 		
 		attribute float size;
-		attribute vec3 color;
+		attribute vec4 color;
 
-		varying vec3 vColor;
+		varying vec4 vColor;
 
 		void main() {
 			vColor = color;
@@ -34,10 +34,10 @@
 	<script id="fs" type="x-shader/x-fragment">
 		uniform float time;
 
-		varying vec3 vColor;
+		varying vec4 vColor;
 
 		void main (void) {
-			gl_FragColor = vec4( vColor, 1.0 );
+			gl_FragColor = vColor;
 		}
 	</script>
 
@@ -64,13 +64,13 @@
 		var vertices = new Float32Array([
 			-1.0,  0.0,  1.0,
 			 0.0,  0.0,  0.0, 
-			 1.0,  0.0,  1.0,
+			 1.0,  0.0,  1.0
 			]);
 
 		var colors = new Float32Array([
-			new THREE.Color( 0x000000 ),
-			new THREE.Color( 0x000000 ),
-			new THREE.Color( 0x000000 )
+				255.0, 0.0, 255.0, 0.5,
+				0.0, 255.0, 0.0, 0.5,
+				0.0, 0.0, 255.0, 0.5
 			]);
 
 		var sizes = new Float32Array([
@@ -80,7 +80,7 @@
 			]);
 
 		geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-		geometry.addAttribute( 'color', new THREE.BufferAttribute( vertices, 1 ) );
+		geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 4 ) );
 		geometry.addAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
 
 		var material = new THREE.PointsMaterial({ 
@@ -94,7 +94,8 @@
 			uniforms: uniforms,
 			vertexShader: document.getElementById( 'vs' ).textContent,
 			fragmentShader: document.getElementById( 'fs' ).textContent,
-			side: THREE.DoubleSide
+			// side: THREE.DoubleSide,
+			transparent: true
 		});
 		
 		mesh =  new THREE.Points( geometry, shaderMaterial );
