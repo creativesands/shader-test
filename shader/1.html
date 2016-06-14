@@ -21,9 +21,11 @@
 		attribute vec3 color;
 
 		varying vec3 vColor;
+		varying float vSize;
 
 		void main() {
 			vColor = color;
+			vSize = size;
 
 			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
 			gl_PointSize = size * ( 200.0 / -mvPosition.z );
@@ -36,9 +38,99 @@
 		uniform sampler2D texture;
 
 		varying vec3 vColor;
+		varying float vSize;
+
+		vec2 transformUV(vec2 uv, float a[9]) {
+		    
+		    // Convert UV to vec3 to apply matrices
+		    vec3 u = vec3(uv, 1.0);
+		    
+		    // Array consists of the following
+		    // 0 translate.x
+		    // 1 translate.y
+		    // 2 skew.x
+		    // 3 skew.y
+		    // 4 rotate
+		    // 5 scale.x
+		    // 6 scale.y
+		    // 7 origin.x
+		    // 8 origin.y
+		    
+		    // Origin before matrix
+		    mat3 mo1 = mat3(
+		                    1, 0, -a[7],
+		                    0, 1, -a[8],
+		                    0, 0, 1);
+		    
+		    // Origin after matrix
+		    mat3 mo2 = mat3(
+		                    1, 0, a[7],
+		                    0, 1, a[8],
+		                    0, 0, 1);
+		    
+		    // Translation matrix
+		    mat3 mt = mat3(
+		                   1, 0, -a[0],
+		                   0, 1, -a[1],
+		                   0, 0, 1);
+		    
+		    // Skew matrix
+		    mat3 mh = mat3(
+		                   1, a[2], 0,
+		                   a[3], 1, 0,
+		                   0, 0, 1);
+		    
+		    // Rotation matrix
+		    mat3 mr = mat3(
+		                   cos(a[4]), sin(a[4]), 0,
+		                   -sin(a[4]), cos(a[4]), 0,
+		                   0, 0, 1);
+		    
+		    // Scale matrix
+		    mat3 ms = mat3(
+		                   1.0 / a[5], 0, 0,
+		                   0, 1.0 / a[6], 0,
+		                   0, 0, 1);
+		    
+		    // apply translation
+		   	u = u * mt;
+		    
+		    // apply skew
+		   	u = u * mh;
+		    
+		    // apply rotation relative to origin
+		    u = u * mo1;
+		    u = u * mr;
+		    u = u * mo2;
+		    
+		    // apply scale relative to origin
+		    u = u * mo1;
+		    u = u * ms;
+		    u = u * mo2;
+		    
+		    // Return vec2 of new UVs
+		    return u.xy;
+		}
+
+		vec2 rotate(vec2 uv) {
+		    float values[9];
+		    values[0] = 0.0; //x
+		    values[1] = 0.0; //y
+		    values[2] = 0.0; //skewX
+		    values[3] = 0.0; //skewY
+		    values[4] = -time * vSize * 0.5; //rotation
+		    values[5] = (sin(time)/2.0 + 0.59); //scaleX
+		    values[6] = 1.0; //scaleY
+		    values[7] = 0.5; //originX
+		    values[8] = 0.5; //originY
+		    return transformUV(uv, values);
+		}
 
 		void main (void) {
-			vec4 texel = texture2D( texture, gl_PointCoord );
+			vec2 uv = vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y);
+			uv = rotate(uv);
+
+			vec4 texel = texture2D( texture, uv );
 			gl_FragColor = texel * vec4(vColor, texel.a);
 		}
 	</script>
@@ -64,13 +156,13 @@
 		var geometry = new THREE.BufferGeometry();
 		
 		var vertices = new Float32Array([
-			-1.0, -1.0,  1.0,
-			 0.0, -1.0,  1.0,
+			-1.5, -1.0,  1.0,
+			 0.0, -0.5,  1.0,
 			 1.0, -1.0,  1.0,
 			 0.0,  0.0,  0.0,
 			 1.0,  1.0,  1.0,
-			 0.0,  1.0,  1.0, 
-			-1.0,  1.0,  1.0, 
+			 0.0,  0.5,  1.0, 
+			-1.0,  1.0,  1.5, 
 			]);
 
 		var colors = new Float32Array([
@@ -144,8 +236,8 @@
 
 	function render() {
 
-		mesh.rotation.y += 0.05;
-		mesh.rotation.x -= 0.05;
+		mesh.rotation.y += 0.005;
+		mesh.rotation.x -= 0.005;
 		uniforms.time.value += 0.05;
 		renderer.render( scene, camera );
 	}
