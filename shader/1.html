@@ -21,6 +21,7 @@
 
     <script src="../three.js"></script>
     <script src="../stats.min.js"></script>
+    <script src="../rendererstats.js"></script>
 </head>
 <body>
 <div id="container"></div>
@@ -42,6 +43,12 @@
 			gl_PointSize = size * ( 200.0 / -mvPosition.z );
 			gl_Position = projectionMatrix * mvPosition;
 		}
+
+
+
+
+
+
 
 
 
@@ -134,7 +141,7 @@
 		    values[1] = 0.0; //y
 		    values[2] = 0.0; //skewX
 		    values[3] = 0.0; //skewY
-		    values[4] = -time * vSize * 0.1; //rotation
+		    values[4] = -time * vSize * 0.25; //rotation
 		    values[5] = (sin(time * vSize * 0.025)/2.0 + 0.6); //scaleX
 		    values[6] = 1.0; //scaleY
 		    values[7] = 0.5; //originX
@@ -147,7 +154,7 @@
 			uv = rotate(uv);
 
 			vec4 texel = texture2D( texture, uv );
-			gl_FragColor = texel * vec4(vColor, texel.a);
+			gl_FragColor = texel * vec4(vColor, 0.75 );
 		}
 
 
@@ -162,7 +169,16 @@
     var camera, renderer, scene, mesh, uniforms;
     var W = window.innerWidth;
     var H = window.innerHeight;
-    var innerParticles = 1000, outerParticles = 200, totalParticles = innerParticles + outerParticles;
+    var innerParticles = 2000, outerParticles = 200, totalParticles = innerParticles + outerParticles;
+
+    rendererStats = new THREEx.RendererStats();
+    rendererStats.domElement.style.position = 'absolute';
+    rendererStats.domElement.style.left = '0px';
+    rendererStats.domElement.style.bottom = '0px';
+    document.body.appendChild(rendererStats.domElement);
+
+    var whiteColor = new THREE.Color("rgb(255, 255, 255)"),
+            blueColor = new THREE.Color("rgb(108, 162, 186)");
 
     init();
     animate();
@@ -179,6 +195,8 @@
         camera.position.z = 0;
 
         scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0xf7d9aa, 10, 30);
+//      scene.fog =  new THREE.FogExp2(0x000000, 0.0007);
 
         var geometry = new THREE.BufferGeometry();
 
@@ -196,7 +214,7 @@
             vertex = new THREE.Vector3(Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150);
             vertex.normalize();
             //random distribution
-            scalar = getRandomIntInclusive(0, 11);
+            scalar = getRandomIntInclusive(0.5, 15);
             //-OR-
             //uniform distribution
 //            if ((i3 % 76) < 1) scalar++;
@@ -207,12 +225,11 @@
             points[i3 + 1] = vertex.y;
             points[i3 + 2] = vertex.z;
 
-            color.setHSL(1.0, 1.0, 1.0);
-            colors[i3 + 0] = color.r;
-            colors[i3 + 1] = color.g;
-            colors[i3 + 2] = color.b;
+            colors[i3 + 0] = whiteColor.r;
+            colors[i3 + 1] = whiteColor.g;
+            colors[i3 + 2] = whiteColor.b;
 
-            sizes[i] = Math.abs(Math.random() * 64 - 32);
+            sizes[i] = Math.abs(Math.random() * 32 - 16);
         }
 
         for (let j = i, j3 = i3; j < totalParticles; j++, j3 += 3) {
@@ -223,17 +240,23 @@
             //-OR-
             //uniform distribution
 //            if ((i3 % 76) < 1) scalar++;
-            console.log("scalar", scalar)
-            vertex.multiplyScalar(scalar+20);
+//            console.log("scalar", scalar)
+            vertex.multiplyScalar(scalar + 20);
 
             points[j3 + 0] = vertex.x;
             points[j3 + 1] = vertex.y;
             points[j3 + 2] = vertex.z;
 
-            color.setHSL(1.0, 1.0, 1.0);
-            colors[j3 + 0] = color.r;
-            colors[j3 + 1] = color.g;
-            colors[j3 + 2] = color.b;
+            if (j % 10 === 0) {
+                colors[j3 + 0] = blueColor.r;
+                colors[j3 + 1] = blueColor.g;
+                colors[j3 + 2] = blueColor.b;
+            }
+            else {
+                colors[j3 + 0] = whiteColor.r;
+                colors[j3 + 1] = whiteColor.g;
+                colors[j3 + 2] = whiteColor.b;
+            }
 
             sizes[j] = Math.abs(Math.random() * 64 - 32);
         }
@@ -244,7 +267,10 @@
 
         uniforms = {
             time: {type: 'f', value: 1.0},
-            texture: {type: "t", value: new THREE.TextureLoader().load("../images/original/1-2.png")}
+            texture: {type: "t", value: new THREE.TextureLoader().load("../images/original/1-2.png")},
+            fogColor: {type: "c", value: scene.fog.color},
+            fogNear: {type: "f", value: scene.fog.near},
+            fogFar: {type: "f", value: scene.fog.far}
         };
 
         var shaderMaterial = new THREE.ShaderMaterial({
@@ -254,11 +280,19 @@
             blending: THREE.AdditiveBlending,
             transparent: true,
             depthTest: false,
+            fog: true
         });
 
         mesh = new THREE.Points(geometry, shaderMaterial);
 
         scene.add(mesh);
+
+        var geometry = new THREE.CylinderGeometry(5, 5, 20, 32);
+        var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+        var cylinder = new THREE.Mesh(geometry, material);
+//        scene.add(cylinder);
+        var wireframe = new THREE.WireframeHelper( cylinder, 0xffffff );
+        scene.add(wireframe);
 
         renderer = new THREE.WebGLRenderer();
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -294,11 +328,12 @@
 
     function render() {
 
-//        mesh.rotation.y += 0.005;
+        mesh.rotation.y += 0.005;
 //        mesh.rotation.x -= 0.005;
 //        mesh.rotation.z -= 0.005;
-        camera.position.z = 50;
+        camera.position.z = 51;
         uniforms.time.value += 0.005;
+        rendererStats.update(renderer);
         renderer.render(scene, camera);
     }
 
