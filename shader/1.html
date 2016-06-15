@@ -333,8 +333,8 @@
                 wireframeLinewidth: 2
             });
             var cylinder = new THREE.Mesh(geometry, material);
-            cylinder.rotation.set( 0, 0, 0 );
-            cylinder.position.set( rand(4, 2), rand(4, 2), 0 );
+            cylinder.rotation.set( 0, rand(0, 4), rand(0, 4) );
+            cylinder.position.set( rand(-2, 2), rand(-2, 2), 0 );
             scene.add(cylinder);
         }
 
