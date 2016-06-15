@@ -22,6 +22,7 @@
     <script src="../three.js"></script>
     <script src="../stats.min.js"></script>
     <script src="../rendererstats.js"></script>
+    <script src="../dat.gui.min.js"></script>
 </head>
 <body>
 <div id="container"></div>
@@ -43,6 +44,7 @@
 			gl_PointSize = size * ( 200.0 / -mvPosition.z );
 			gl_Position = projectionMatrix * mvPosition;
 		}
+
 
 
 
@@ -161,6 +163,7 @@
 
 
 
+
 </script>
 
 <script>
@@ -170,6 +173,8 @@
     var W = window.innerWidth;
     var H = window.innerHeight;
     var innerParticles = 2000, outerParticles = 200, totalParticles = innerParticles + outerParticles;
+    var clock = new THREE.Clock();
+    var Controls, explode = false;
 
     rendererStats = new THREEx.RendererStats();
     rendererStats.domElement.style.position = 'absolute';
@@ -181,7 +186,21 @@
             blueColor = new THREE.Color("rgb(108, 162, 186)");
 
     init();
+    createControls();
     animate();
+
+    function createControls() {
+        Controls = function () {
+            this.Explode = function () {
+                console.log("Explode clicked");
+                explode = true;
+            };
+        };
+
+        var text = new Controls();
+        var gui = new dat.GUI();
+        gui.add(text, 'Explode');
+    }
 
     function getRandomIntInclusive(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -284,15 +303,17 @@
         });
 
         mesh = new THREE.Points(geometry, shaderMaterial);
+        window.particles = mesh;
 
         scene.add(mesh);
 
-        var geometry = new THREE.CylinderGeometry(5, 5, 20, 32);
-        var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+        var geometry = new THREE.CylinderGeometry(1, 1, 50, 5);
+        var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
         var cylinder = new THREE.Mesh(geometry, material);
+        cylinder.rotation.z = 1;
 //        scene.add(cylinder);
-        var wireframe = new THREE.WireframeHelper( cylinder, 0xffffff );
-        scene.add(wireframe);
+//        var wireframe = new THREE.WireframeHelper( cylinder, whiteColor );
+        scene.add(cylinder);
 
         renderer = new THREE.WebGLRenderer();
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -327,12 +348,12 @@
     }
 
     function render() {
-
         mesh.rotation.y += 0.005;
 //        mesh.rotation.x -= 0.005;
 //        mesh.rotation.z -= 0.005;
         camera.position.z = 51;
         uniforms.time.value += 0.005;
+
         rendererStats.update(renderer);
         renderer.render(scene, camera);
     }
