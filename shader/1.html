@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>Shader 1</title>
-	
-	<style>
-		* { padding: 0; margin: 0; }
-		#container { position: fixed; top: 0; bottom: 0; left: 0; right: 0; }
-	</style>
+    <meta charset="UTF-8">
+    <title>Shader 1</title>
 
-	<script src="../three.js"></script>
-	<script src="../stats.min.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        #container {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    </style>
+
+    <script src="../three.js"></script>
+    <script src="../stats.min.js"></script>
 </head>
 <body>
-	<div id="container"></div>
-	
-	<script id="vs" type="x-shader/x-vertex">
+<div id="container"></div>
+
+<script id="vs" type="x-shader/x-vertex">
 		uniform float time;
 		
 		attribute float size;
@@ -32,9 +42,14 @@
 			gl_PointSize = size * ( 200.0 / -mvPosition.z );
 			gl_Position = projectionMatrix * mvPosition;
 		}
-	</script>
 
-	<script id="fs" type="x-shader/x-fragment">
+
+
+
+
+</script>
+
+<script id="fs" type="x-shader/x-fragment">
 		uniform float time;
 		uniform sampler2D texture;
 
@@ -134,113 +149,159 @@
 			vec4 texel = texture2D( texture, uv );
 			gl_FragColor = texel * vec4(vColor, texel.a);
 		}
-	</script>
 
-	<script>
-		
-	var container, stats;
-	var camera, renderer, scene, mesh, uniforms;
-	var W = window.innerWidth;
-	var H = window.innerHeight;
-	var particles = 256000;
 
-	init();
-	animate();
 
-	function init() {
 
-		container = document.getElementById( 'container' );
 
-		camera = new THREE.PerspectiveCamera( 45, W / H, 1, 2000 );
-		camera.position.z = 0;
+</script>
 
-		scene = new THREE.Scene();		
+<script>
 
-		var geometry = new THREE.BufferGeometry();
+    var container, stats;
+    var camera, renderer, scene, mesh, uniforms;
+    var W = window.innerWidth;
+    var H = window.innerHeight;
+    var innerParticles = 1000, outerParticles = 200, totalParticles = innerParticles + outerParticles;
 
-		var points = new Float32Array( particles * 3 );
-		var colors = new Float32Array( particles * 3 );
-		var sizes = new Float32Array( particles );
+    init();
+    animate();
 
-		var color = new THREE.Color();
+    function getRandomIntInclusive(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
-		for( var i = 0, i3 = 0; i < particles; i++, i3 += 3 ) {
-			points[ i3 + 0 ] = Math.random() * 300 - 150;
-			points[ i3 + 1 ] = Math.random() * 300 - 150;
-			points[ i3 + 2 ] = Math.random() * 300 - 150;
+    function init() {
 
-			color.setHSL( i / particles, 1.0, 0.5 );
-			colors[ i3 + 0 ] = color.r;
-			colors[ i3 + 1 ] = color.g;
-			colors[ i3 + 2 ] = color.b;
+        container = document.getElementById('container');
 
-			sizes[ i ] = Math.abs( Math.random() * 64 - 32 );
-		}
+        camera = new THREE.PerspectiveCamera(45, W / H, 1, 2000);
+        camera.position.z = 0;
 
-		geometry.addAttribute( 'position', new THREE.BufferAttribute( points, 3 ) );
-		geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
-		geometry.addAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
+        scene = new THREE.Scene();
 
-		uniforms = { 
-			time: { type: 'f', value: 1.0 },
-			texture: { type: "t", value: new THREE.TextureLoader().load( "../images/original/1-2.png" ) }
-		};
+        var geometry = new THREE.BufferGeometry();
 
-		var shaderMaterial = new THREE.ShaderMaterial({
-			uniforms: uniforms,
-			vertexShader: document.getElementById( 'vs' ).textContent,
-			fragmentShader: document.getElementById( 'fs' ).textContent,
-			blending: THREE.AdditiveBlending,
-			transparent: true,
-			depthTest: false,
-		});
-		
-		mesh =  new THREE.Points( geometry, shaderMaterial );
+        var points = new Float32Array((innerParticles + outerParticles) * 3);
+        var colors = new Float32Array((innerParticles + outerParticles) * 3);
+        var sizes = new Float32Array((innerParticles + outerParticles));
 
-		scene.add( mesh );
+        var color = new THREE.Color();
 
-		renderer = new THREE.WebGLRenderer();
-		renderer.setPixelRatio( window.devicePixelRatio );
-		renderer.setClearColor( 0x141823 );
+        var vertex;
 
-		container.appendChild( renderer.domElement );
+        var scalar = 1;
 
-		stats = new Stats();
-		container.appendChild( stats.dom );
+        for (var i = 0, i3 = 0; i < innerParticles; i++, i3 += 3) {
+            vertex = new THREE.Vector3(Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150);
+            vertex.normalize();
+            //random distribution
+            scalar = getRandomIntInclusive(0, 11);
+            //-OR-
+            //uniform distribution
+//            if ((i3 % 76) < 1) scalar++;
+            console.log("scalar", scalar)
+            vertex.multiplyScalar(scalar);
 
-		onWindowResize();
+            points[i3 + 0] = vertex.x;
+            points[i3 + 1] = vertex.y;
+            points[i3 + 2] = vertex.z;
 
-		window.addEventListener( 'resize', onWindowResize, false );
-	}
+            color.setHSL(1.0, 1.0, 1.0);
+            colors[i3 + 0] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
 
-	function onWindowResize( event ) {
+            sizes[i] = Math.abs(Math.random() * 64 - 32);
+        }
 
-		W = window.innerWidth;
-		H = window.innerHeight;
-		
-		camera.aspect = W / H;
-		camera.updateProjectionMatrix();
+        for (let j = i, j3 = i3; j < totalParticles; j++, j3 += 3) {
+            vertex = new THREE.Vector3(Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150);
+            vertex.normalize();
+            //random distribution
+            scalar = getRandomIntInclusive(0, 11);
+            //-OR-
+            //uniform distribution
+//            if ((i3 % 76) < 1) scalar++;
+            console.log("scalar", scalar)
+            vertex.multiplyScalar(scalar+20);
 
-		renderer.setSize( W, H );
-	}
+            points[j3 + 0] = vertex.x;
+            points[j3 + 1] = vertex.y;
+            points[j3 + 2] = vertex.z;
 
-	function animate() {
+            color.setHSL(1.0, 1.0, 1.0);
+            colors[j3 + 0] = color.r;
+            colors[j3 + 1] = color.g;
+            colors[j3 + 2] = color.b;
 
-		requestAnimationFrame( animate );
-		render();
-		stats.update();
-	}
+            sizes[j] = Math.abs(Math.random() * 64 - 32);
+        }
 
-	function render() {
+        geometry.addAttribute('position', new THREE.BufferAttribute(points, 3));
+        geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-		mesh.rotation.y += 0.005;
-		mesh.rotation.x -= 0.005;
-		mesh.rotation.z -= 0.005;
-		camera.position.z += 0.1;
-		uniforms.time.value += 0.05;
-		renderer.render( scene, camera );
-	}
+        uniforms = {
+            time: {type: 'f', value: 1.0},
+            texture: {type: "t", value: new THREE.TextureLoader().load("../images/original/1-2.png")}
+        };
 
-	</script>
+        var shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: document.getElementById('vs').textContent,
+            fragmentShader: document.getElementById('fs').textContent,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            depthTest: false,
+        });
+
+        mesh = new THREE.Points(geometry, shaderMaterial);
+
+        scene.add(mesh);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x141823);
+
+        container.appendChild(renderer.domElement);
+
+        stats = new Stats();
+        container.appendChild(stats.dom);
+
+        onWindowResize();
+
+        window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize(event) {
+
+        W = window.innerWidth;
+        H = window.innerHeight;
+
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(W, H);
+    }
+
+    function animate() {
+
+        requestAnimationFrame(animate);
+        render();
+        stats.update();
+    }
+
+    function render() {
+
+//        mesh.rotation.y += 0.005;
+//        mesh.rotation.x -= 0.005;
+//        mesh.rotation.z -= 0.005;
+        camera.position.z = 50;
+        uniforms.time.value += 0.005;
+        renderer.render(scene, camera);
+    }
+
+</script>
 </body>
 </html>
