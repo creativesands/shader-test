@@ -63,6 +63,9 @@
 		gl_Position = projectionMatrix * mvPosition;
 	}
 
+
+
+
 </script>
 
 <script id="fs" type="x-shader/x-fragment">
@@ -166,6 +169,9 @@
 		gl_FragColor = texel * vec4(vColor, 0.75 );
 	}
 
+
+
+
 </script>
 
 <script>
@@ -190,20 +196,25 @@
     createControls();
     animate();
 
-    function rand (min, max) { return lerp(Math.random(), min, max); }
-    function lerp (ratio, start, end) { return start + (end - start) * ratio; }
+    function rand(min, max) {
+        return lerp(Math.random(), min, max);
+    }
+    function lerp(ratio, start, end) {
+        return start + (end - start) * ratio;
+    }
 
     function createControls() {
-        Controls = function () {
+        var text = function () {
+            this.time = "time";
             this.Explode = function () {
                 console.log("Explode clicked");
                 explode = true;
             };
         };
-
-        var text = new Controls();
+        Controls = new text();
         var gui = new dat.GUI();
-        gui.add(text, 'Explode');
+        gui.add(Controls, 'time').listen();
+        gui.add(Controls, 'Explode');
     }
 
     function getRandomIntInclusive(min, max) {
@@ -235,7 +246,7 @@
         var scalar = 1;
 
         for (var i = 0, i3 = 0; i < innerParticles; i++, i3 += 3) {
-            vertex = new THREE.Vector3( rand( -150, 150 ), rand( -150, 150 ), rand( -150, 150 ) );
+            vertex = new THREE.Vector3(rand(-150, 150), rand(-150, 150), rand(-150, 150));
             vertex.normalize();
             //random distribution
             scalar = rand(1, 15);
@@ -257,7 +268,7 @@
         }
 
         for (let j = i, j3 = i3; j < totalParticles; j++, j3 += 3) {
-            vertex = new THREE.Vector3( rand( -150, 150 ), rand( -150, 150 ), rand( -150, 150 ));
+            vertex = new THREE.Vector3(rand(-150, 150), rand(-150, 150), rand(-150, 150));
             vertex.normalize();
             //random distribution
             scalar = rand(0, 15);
@@ -360,18 +371,16 @@
     }
 
     function render() {
-
         mesh.rotation.y += 0.01;
         mesh.rotation.x -= 0.005;
         mesh.rotation.z += 0.005;
         camera.position.z = 150;
-        if (explode) {
-            uniforms.time.value += 0.05;
-        }
-        else {
-            uniforms.time.value += 0.005;
-        }
+
+        uniforms.time.value += explode ? 0.05 : 0.005;
+
+        Controls.time = uniforms.time.value;
         rendererStats.update(renderer);
+
         renderer.render(scene, camera);
     }
 
