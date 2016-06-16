@@ -48,8 +48,7 @@
 		vSize = size;
 
         float aTime = clamp( time, 0.0, 4.0 );
-
-        vec3 accP = easeOutCubic( aTime, position.xyz, 15.0, 4.0 );
+        vec3 accP = easeOutCubic( aTime, position.xyz, 35.0, 4.0 );
         vec4 mvPosition = modelViewMatrix * vec4( accP, 1.0 );
 		gl_PointSize = size * ( 200.0 / -mvPosition.z );
 		gl_Position = projectionMatrix * mvPosition;
@@ -146,7 +145,7 @@
 	    values[1] = 0.0; //y
 	    values[2] = 0.0; //skewX
 	    values[3] = 0.0; //skewY
-	    values[4] = time * vSize * 0.75; //rotation
+	    values[4] = time * vSize * 0.25; //rotation
 	    values[5] = (sin(time * vSize * 0.5)/2.0 + 0.75); //scaleX
 	    values[6] = 1.0; //scaleY
 	    values[7] = 0.5; //originX
@@ -175,7 +174,7 @@
     var H = window.innerHeight;
     var Controls, explode = false;
     var trackballControls;
-    var innerParticles = 10000, outerParticles = 2000, totalParticles = innerParticles + outerParticles;
+    var innerParticles = 10000, outerParticles = 5000, totalParticles = innerParticles + outerParticles;
     var explosionSpeed = 1.0;
 
     rendererStats = new THREEx.RendererStats();
@@ -207,7 +206,7 @@
             this.reset = function () {
                 console.log("Resetting ...");
                 uniforms.time.value = 0.0;
-                camera.position.z = 150;
+                camera.position.z = 250;
             }
         };
         Controls = new text();
@@ -223,8 +222,8 @@
 
         container = document.getElementById('container');
 
-        camera = new THREE.PerspectiveCamera(45, W / H, 1, 2000);
-        camera.position.z = 150;
+        camera = new THREE.PerspectiveCamera(75, W / H, 1, 2000);
+        camera.position.z = 250;
 
         trackballControls = new THREE.TrackballControls( camera );
         trackballControls.rotateSpeed = 1.0;
@@ -238,7 +237,7 @@
         trackballControls.addEventListener( 'change', render );
 
         scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0x6ca2ba, -50, 500);
+        scene.fog = new THREE.Fog( 0x6ca2ba, 0, 1500 ); //0x6ca2ba
 
         var geometry = new THREE.BufferGeometry();
 
@@ -257,7 +256,7 @@
             vertex.normalize();
 
             //random distribution
-            scalar = rand(1, 15);
+            scalar = rand(1, 17);
             vertex.multiplyScalar(scalar);
 
             points[i3 + 0] = vertex.x;
@@ -268,7 +267,7 @@
             colors[i3 + 1] = whiteColor.g;
             colors[i3 + 2] = whiteColor.b;
 
-            sizes[i] = Math.abs(Math.random() * 32 - 16);
+            sizes[i] = Math.abs(Math.random() * 64 - 32);
         }
 
         for (let j = i, j3 = i3; j < totalParticles; j++, j3 += 3) {
@@ -277,7 +276,7 @@
 
             //random distribution
             scalar = rand(0, 15);
-            vertex.multiplyScalar(scalar + 15);
+            vertex.multiplyScalar(scalar + 10);
 
             points[j3 + 0] = vertex.x;
             points[j3 + 1] = vertex.y;
@@ -294,7 +293,7 @@
                 colors[j3 + 2] = whiteColor.b;
             }
 
-            sizes[j] = Math.abs(Math.random() * 128 - 64);
+            sizes[j] = Math.abs(Math.random() * 75 - 25);
         }
 
         geometry.addAttribute('position', new THREE.BufferAttribute(points, 3));
@@ -325,7 +324,7 @@
         scene.add(mesh);
 
         for (var i = 0; i < 3; i++) {
-            var geometry = new THREE.CylinderGeometry(1, 1, 300, 6, 1);
+            var geometry = new THREE.CylinderGeometry(3, 3, 1000, 6, 1);
             var material = new THREE.MeshBasicMaterial({
                 color: 0xffffff,
                 wireframe: true,
@@ -375,9 +374,9 @@
 
     function render() {
         if (Controls.rotation) {
-            mesh.rotation.y += 0.01;
-            mesh.rotation.x -= 0.005;
-            mesh.rotation.z += 0.005;
+            mesh.rotation.y += 0.001;
+            mesh.rotation.x -= 0.001;
+            mesh.rotation.z += 0.001;
             camera.position.z -= 0.05;
         }
         
