@@ -53,6 +53,7 @@
 		gl_PointSize = size * ( 200.0 / -mvPosition.z );
 		gl_Position = projectionMatrix * mvPosition;
 	}
+
 </script>
 
 <script id="fs" type="x-shader/x-fragment">
@@ -163,6 +164,7 @@
 		gl_FragColor = texel * vec4(vColor, 0.75 );
         gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
 	}
+
 </script>
 
 <script>
@@ -200,6 +202,7 @@
             this.time = "0.0";
             this.explosionSpeed = "1.0";
             this.explode = false;
+            this.rotation = false;
             this.reset = function () {
                 console.log("Resetting ...");
                 uniforms.time.value = 1.0;
@@ -209,6 +212,7 @@
         Controls = new text();
         var gui = new dat.GUI();
         gui.add(Controls, 'time').listen();
+        gui.add(Controls, 'rotation');
         gui.add(Controls, 'explode');
         gui.add(Controls, 'explosionSpeed');
         gui.add(Controls, 'reset');
@@ -222,7 +226,7 @@
         camera.position.z = 150;
 
         scene = new THREE.Scene();
-        scene.fog = new THREE.Fog( 0x6ca2ba, -50, 500 );
+        scene.fog = new THREE.Fog(0x6ca2ba, -50, 500);
 
         var geometry = new THREE.BufferGeometry();
 
@@ -239,7 +243,7 @@
         for (var i = 0, i3 = 0; i < innerParticles; i++, i3 += 3) {
             vertex = new THREE.Vector3(rand(-150, 150), rand(-150, 150), rand(-150, 150));
             vertex.normalize();
-            
+
             //random distribution
             scalar = rand(1, 15);
             vertex.multiplyScalar(scalar);
@@ -258,7 +262,7 @@
         for (let j = i, j3 = i3; j < totalParticles; j++, j3 += 3) {
             vertex = new THREE.Vector3(rand(-150, 150), rand(-150, 150), rand(-150, 150));
             vertex.normalize();
-            
+
             //random distribution
             scalar = rand(0, 15);
             vertex.multiplyScalar(scalar + 15);
@@ -286,11 +290,11 @@
         geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
         uniforms = {
-            time: { type: 'f', value: 1.0 },
-            texture: { type: "t", value: new THREE.TextureLoader().load('../images/original/1-2.png') },
-            fogColor: { type: "c", value: scene.fog.color },
-            fogNear: { type: "f", value: scene.fog.near },
-            fogFar: { type: "f", value: scene.fog.far }
+            time: {type: 'f', value: 1.0},
+            texture: {type: "t", value: new THREE.TextureLoader().load('../images/original/1-2.png')},
+            fogColor: {type: "c", value: scene.fog.color},
+            fogNear: {type: "f", value: scene.fog.near},
+            fogFar: {type: "f", value: scene.fog.far}
         };
 
         var shaderMaterial = new THREE.ShaderMaterial({
@@ -357,12 +361,14 @@
     }
 
     function render() {
-        mesh.rotation.y += 0.01;
-        mesh.rotation.x -= 0.005;
-        mesh.rotation.z += 0.005;
-        camera.position.z -= 0.05;
+        uniforms.time.value += Controls.explode ? 0.05 * Controls.explosionSpeed : 0.005;
 
-        uniforms.time.value += Controls.explode ? 0.05 * explosionSpeed : 0.005;
+        if (Controls.rotation) {
+            mesh.rotation.y += 0.01;
+            mesh.rotation.x -= 0.005;
+            mesh.rotation.z += 0.005;
+            camera.position.z -= 0.05;
+        }
 
         Controls.time = uniforms.time.value;
         rendererStats.update(renderer);
