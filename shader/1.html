@@ -55,8 +55,6 @@
 	}
 
 
-
-
 </script>
 
 <script id="fs" type="x-shader/x-fragment">
@@ -161,8 +159,6 @@
 	}
 
 
-
-
 </script>
 
 <script>
@@ -173,6 +169,7 @@
     var H = window.innerHeight;
     var Controls, explode = false;
     var innerParticles = 10000, outerParticles = 2000, totalParticles = innerParticles + outerParticles;
+    var explosionSpeed = 1.0;
 
     rendererStats = new THREEx.RendererStats();
     rendererStats.domElement.style.position = 'absolute';
@@ -196,12 +193,13 @@
 
     function createControls() {
         var text = function () {
-            this.time = "time";
-            this.Explode = function () {
+            this.time = "0.0";
+            this.explosionSpeed = "1.0";
+            this.explode = function () {
                 console.log("Exploding ...");
                 explode = true;
             };
-            this.Reset = function () {
+            this.reset = function () {
                 console.log("Resetting ...");
                 uniforms.time.value = 1.0;
             }
@@ -209,8 +207,9 @@
         Controls = new text();
         var gui = new dat.GUI();
         gui.add(Controls, 'time').listen();
-        gui.add(Controls, 'Explode');
-        gui.add(Controls, 'Reset');
+        gui.add(Controls, 'explode');
+        gui.add(Controls, 'explosionSpeed');
+        gui.add(Controls, 'reset');
     }
 
     function getRandomIntInclusive(min, max) {
@@ -329,8 +328,8 @@
                 wireframeLinewidth: 2
             });
             var cylinder = new THREE.Mesh(geometry, material);
-            cylinder.rotation.set( 0, rand(0, 4), rand(0, 4) );
-            cylinder.position.set( rand(-2, 2), rand(-2, 2), 0 );
+            cylinder.rotation.set(0, rand(0, 4), rand(0, 4));
+            cylinder.position.set(rand(-2, 2), rand(-2, 2), 0);
             scene.add(cylinder);
         }
 
@@ -372,7 +371,7 @@
         mesh.rotation.z += 0.005;
         camera.position.z -= 0.05;
 
-        uniforms.time.value += explode ? 0.05 : 0.005;
+        uniforms.time.value += explode ? 0.05 * explosionSpeed : 0.005;
 
         Controls.time = uniforms.time.value;
         rendererStats.update(renderer);
