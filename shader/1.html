@@ -31,11 +31,13 @@
 <script id="vs" type="x-shader/x-vertex">
 	uniform float time;
 	
-	attribute float size;
-	attribute vec3 color;
+    attribute float sign;
+    attribute float size;
+    attribute vec3 color;
 
 	varying vec3 vColor;
 	varying float vSize;
+    varying float vSign;
 
     vec3 easeOutCubic( float t, vec3 b, float c, float d ) {
         t /= d;
@@ -46,6 +48,7 @@
 	void main() {
 		vColor = color;
 		vSize = size;
+        vSign = sign;
 
         float aTime = clamp( time, 0.0, 4.0 );
         vec3 accP = easeOutCubic( aTime, position.xyz, 35.0, 4.0 );
@@ -66,6 +69,7 @@
 
 	varying vec3 vColor;
 	varying float vSize;
+    varying float vSign;
 
 	vec2 transformUV(vec2 uv, float a[9]) {
 	    
@@ -145,7 +149,7 @@
 	    values[1] = 0.0; //y
 	    values[2] = 0.0; //skewX
 	    values[3] = 0.0; //skewY
-	    values[4] = time * vSize * 0.25; //rotation
+	    values[4] = vSign * time * vSize * 0.25; //rotation
 	    values[5] = (sin(time * vSize * 0.5)/2.0 + 0.75); //scaleX
 	    values[6] = 1.0; //scaleY
 	    values[7] = 0.5; //originX
@@ -232,7 +236,7 @@
         trackballControls.noZoom = false;
         trackballControls.noPan = false;
         trackballControls.staticMoving = true;
-        trackballControls.dynamicDampingFactor = 0.3;
+        trackballControls.dynamicDampingFactor = 0.5;
         trackballControls.keys = [ 65, 83, 68 ];
         trackballControls.addEventListener( 'change', render );
 
@@ -241,64 +245,48 @@
 
         var geometry = new THREE.BufferGeometry();
 
-        var points = new Float32Array((innerParticles + outerParticles) * 3);
-        var colors = new Float32Array((innerParticles + outerParticles) * 3);
-        var sizes = new Float32Array((innerParticles + outerParticles));
+        var points = new Float32Array( totalParticles * 3 );
+        var colors = new Float32Array( totalParticles * 3 );
+        var sizes = new Float32Array( totalParticles );
+        var signs = new Float32Array( totalParticles );
 
-        var color = new THREE.Color();
+        var color = whiteColor;
 
-        var vertex;
+        var vertex, scalar, scaleFactor;
 
-        var scalar = 1;
-
-        for (var i = 0, i3 = 0; i < innerParticles; i++, i3 += 3) {
+        for (var i = 0, i3 = 0; i < totalParticles; i++, i3 += 3) {
             vertex = new THREE.Vector3(rand(-150, 150), rand(-150, 150), rand(-150, 150));
             vertex.normalize();
 
-            //random distribution
-            scalar = rand(1, 17);
-            vertex.multiplyScalar(scalar);
+            if ( i < innerParticles ) {
+                scaleFactor = 0;
+                sizes[i] = Math.abs(Math.random() * 64 - 32);
+            }
+            else {
+                scaleFactor = 10;
+                sizes[i] = Math.abs(Math.random() * 75 - 25);
+            }
+
+            scalar = rand(0.85, 15);
+            vertex.multiplyScalar(scalar + scaleFactor);
 
             points[i3 + 0] = vertex.x;
             points[i3 + 1] = vertex.y;
             points[i3 + 2] = vertex.z;
+            
+            color = i % 6 === 0 ? blueColor : whiteColor;
 
-            colors[i3 + 0] = whiteColor.r;
-            colors[i3 + 1] = whiteColor.g;
-            colors[i3 + 2] = whiteColor.b;
+            colors[i3 + 0] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
 
-            sizes[i] = Math.abs(Math.random() * 64 - 32);
-        }
-
-        for (let j = i, j3 = i3; j < totalParticles; j++, j3 += 3) {
-            vertex = new THREE.Vector3(rand(-150, 150), rand(-150, 150), rand(-150, 150));
-            vertex.normalize();
-
-            //random distribution
-            scalar = rand(0, 15);
-            vertex.multiplyScalar(scalar + 10);
-
-            points[j3 + 0] = vertex.x;
-            points[j3 + 1] = vertex.y;
-            points[j3 + 2] = vertex.z;
-
-            if (j % 5 === 0) {
-                colors[j3 + 0] = blueColor.r;
-                colors[j3 + 1] = blueColor.g;
-                colors[j3 + 2] = blueColor.b;
-            }
-            else {
-                colors[j3 + 0] = whiteColor.r;
-                colors[j3 + 1] = whiteColor.g;
-                colors[j3 + 2] = whiteColor.b;
-            }
-
-            sizes[j] = Math.abs(Math.random() * 75 - 25);
+            signs[i] = i % 2 == 0 ? 1 : -1;
         }
 
         geometry.addAttribute('position', new THREE.BufferAttribute(points, 3));
         geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        geometry.addAttribute('sign', new THREE.BufferAttribute(signs, 1));
 
         uniforms = {
             time: { type: 'f', value: 0.0 },
@@ -374,10 +362,10 @@
 
     function render() {
         if (Controls.rotation) {
-            mesh.rotation.y += 0.001;
-            mesh.rotation.x -= 0.001;
-            mesh.rotation.z += 0.001;
-            camera.position.z -= 0.05;
+            mesh.rotation.y += 0.0005;
+            mesh.rotation.x -= 0.0005;
+            mesh.rotation.z += 0.0005;
+            //camera.position.z -= 0.05;
         }
         
         uniforms.time.value += Controls.explode ? 0.05 * Controls.explosionSpeed : 0.005;
