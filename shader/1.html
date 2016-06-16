@@ -23,6 +23,7 @@
     <script src="../stats.min.js"></script>
     <script src="../rendererstats.js"></script>
     <script src="../dat.gui.min.js"></script>
+    <script src="../TrackballControls.js"></script>
 </head>
 <body>
 <div id="container"></div>
@@ -164,7 +165,6 @@
 		gl_FragColor = texel * vec4(vColor, 0.75 );
         gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
 	}
-
 </script>
 
 <script>
@@ -174,6 +174,7 @@
     var W = window.innerWidth;
     var H = window.innerHeight;
     var Controls, explode = false;
+    var trackballControls;
     var innerParticles = 10000, outerParticles = 2000, totalParticles = innerParticles + outerParticles;
     var explosionSpeed = 1.0;
 
@@ -224,6 +225,17 @@
 
         camera = new THREE.PerspectiveCamera(45, W / H, 1, 2000);
         camera.position.z = 150;
+
+        trackballControls = new THREE.TrackballControls( camera );
+        trackballControls.rotateSpeed = 1.0;
+        trackballControls.zoomSpeed = 1.2;
+        trackballControls.panSpeed = 0.8;
+        trackballControls.noZoom = false;
+        trackballControls.noPan = false;
+        trackballControls.staticMoving = true;
+        trackballControls.dynamicDampingFactor = 0.3;
+        trackballControls.keys = [ 65, 83, 68 ];
+        trackballControls.addEventListener( 'change', render );
 
         scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0x6ca2ba, -50, 500);
@@ -356,6 +368,7 @@
     function animate() {
 
         requestAnimationFrame(animate);
+        trackballControls.update();
         render();
         stats.update();
     }
