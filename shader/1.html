@@ -199,10 +199,7 @@
         var text = function () {
             this.time = "0.0";
             this.explosionSpeed = "1.0";
-            this.explode = function () {
-                console.log("Exploding ...");
-                explode = true;
-            };
+            this.explode = false;
             this.reset = function () {
                 console.log("Resetting ...");
                 uniforms.time.value = 1.0;
@@ -365,7 +362,7 @@
         mesh.rotation.z += 0.005;
         camera.position.z -= 0.05;
 
-        uniforms.time.value += explode ? 0.05 * explosionSpeed : 0.005;
+        uniforms.time.value += Controls.explode ? 0.05 * explosionSpeed : 0.005;
 
         Controls.time = uniforms.time.value;
         rendererStats.update(renderer);
