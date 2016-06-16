@@ -40,25 +40,16 @@
         t /= d;
         t--;
         return c * ( t * t * t + 1.0 ) * b;
-        float r = c * ( t * t * t + 1.0 );
-        return vec3( b.xyz + r );
-        //return b;
     }
-
-    // Math.easeOutCubic = function (t, b, c, d) {
-    //     t /= d;
-    //     t--;
-    //     return b + c * ( t * t * t + 1.0 );
-    // };
 
 	void main() {
 		vColor = color;
 		vSize = size;
 
-        vec3 accP = easeOutCubic(time - 1.0, position.xyz, 5.0, 1.0);
+        float aTime = clamp( time, 0.0, 3.25 );
+
+        vec3 accP = easeOutCubic( aTime - 1.0, position.xyz, 5.0, 1.0 );
         vec4 mvPosition = modelViewMatrix * vec4( accP, 1.0 );
-		// vec4 mvPosition = modelViewMatrix * vec4( position * time * 4.0, 1.0 );
-		// vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
 		gl_PointSize = size * ( 200.0 / -mvPosition.z );
 		gl_Position = projectionMatrix * mvPosition;
 	}
@@ -153,8 +144,8 @@
 	    values[1] = 0.0; //y
 	    values[2] = 0.0; //skewX
 	    values[3] = 0.0; //skewY
-	    values[4] = -time * vSize * 0.25; //rotation
-	    values[5] = (sin(time * vSize * 0.025)/2.0 + 0.6); //scaleX
+	    values[4] = -time * vSize * 0.75; //rotation
+	    values[5] = (sin(time * vSize * 0.5)/2.0 + 0.6); //scaleX
 	    values[6] = 1.0; //scaleY
 	    values[7] = 0.5; //originX
 	    values[8] = 0.5; //originY
