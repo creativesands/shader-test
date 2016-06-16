@@ -198,14 +198,19 @@
         var text = function () {
             this.time = "time";
             this.Explode = function () {
-                console.log("Explode clicked");
+                console.log("Exploding ...");
                 explode = true;
             };
+            this.Reset = function () {
+                console.log("Resetting ...");
+                uniforms.time.value = 1.0;
+            }
         };
         Controls = new text();
         var gui = new dat.GUI();
         gui.add(Controls, 'time').listen();
         gui.add(Controls, 'Explode');
+        gui.add(Controls, 'Reset');
     }
 
     function getRandomIntInclusive(min, max) {
