@@ -201,7 +201,7 @@ h4.feed-content__banner-title {
     height: 100%;
     overflow: auto;
     overflow-x: hidden;
-    transform: translate3d(0,0,0);
+    transform: translate3d(0, 0, 0);
 }
 
 .feed-content {
@@ -233,4 +233,96 @@ p.feed-content__text {
     line-height: 20px;
     color: rgba(20, 24, 35, 0.75);
     padding-bottom: 10px;
+}
+
+.gradiant-top-bottom:before,
+.gradiant-top-bottom:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100px;
+}
+
+.gradiant-top-bottom:before {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(20, 24, 35, 16) 0%, rgba(20, 24, 35, 0.8) 40%, rgba(20, 24, 35, 0.6) 60%, rgba(20, 24, 35, 0) 100%)
+}
+
+.gradiant-top-bottom:after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(20, 24, 35, 16) 0%, rgba(20, 24, 35, 0.8) 40%, rgba(20, 24, 35, 0.6) 60%, rgba(20, 24, 35, 0) 100%)
+}
+
+a.logo-full {
+    height: 45px;
+    background: url(../images/logo-full.png) no-repeat;
+    background-size: contain;
+    background-position: center center;
+    position: absolute;
+    width: 250px;
+    top: 40px;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+h4.home-tag-line {
+    position: absolute;
+    bottom: 0;
+    color: #fff;
+    z-index: 9;
+    font-size: 26px;
+    font-weight: 100;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 55px;
+    text-align: center;
+}
+
+h4.home-tag-line:after {
+    content: '';
+    position: absolute;
+    background: #d12f2f;
+    height: 4px;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    width: 60%;
+    margin: auto;
+}
+
+button.action-button {
+    position: absolute;
+    z-index: 9;
+    top: 50%;
+    right: 160px;
+    padding: 6px 26px 6px 9px;
+    font-size: 12px;
+    font-weight: 400;
+    background: none;
+    color: #fff;
+    border: 1px solid #fff;
+    transform: translateY(-50%) skewX(-10deg);
+}
+
+button.action-button:before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 90px;
+    border-bottom: 1px solid #fff;
+}
+
+button.action-button:after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    border-style: solid;
+    border-width: 4px 0px 4px 7px;
+    border-color: rgba(209, 47, 47, 0) rgba(209, 47, 47, 0) rgba(209, 47, 47, 0) #d12f2f;
+    transform: translateY(-50%);
 }
